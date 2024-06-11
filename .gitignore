@@ -1,0 +1,12 @@
+# Ignore ALL .cmake, .a, .dll files
+*.cmake
+*.a
+*.dll
+
+# Ignore Makefile and CMakeCache.txt
+Makefile
+CMakeCache.txt
+
+# Ignore ALL files in ANY directory named build or CMakeFiles
+build/
+CMakeFiles/
