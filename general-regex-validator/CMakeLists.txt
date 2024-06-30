@@ -7,8 +7,12 @@ project(RegexValidator LANGUAGES CXX)
 
 add_executable(${PROJECT_NAME} ./src/main.cpp)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/exceptions)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/validators)
+
+add_library(exceptions SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../exceptions/expressionException.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../exceptions/expressionException.cpp
+)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}

@@ -3,8 +3,8 @@
 #include <vector>
 #include <stack>
 
-#include "expressions.h"
-#include "../exceptions/expressionsException.h"
+#include "expressions.hpp"
+#include "../../../exceptions/expressionsException.hpp"
 
 using std::cout;
 using std::format;
@@ -123,7 +123,7 @@ bool regex::isEmpty(string *input)
 }
 
 // RegEx checker
-bool regex::checkExpression(string *input, string *regex)
+bool regex::checkExpression(string *input,const string *regex)
 {
   int inputLength = input->length(), regexLength;
   int c, r, rNext, acc;

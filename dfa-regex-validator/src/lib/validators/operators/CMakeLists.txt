@@ -1,0 +1,5 @@
+add_library(operators STATIC
+        operators.cpp
+        operators.hpp)
+
+target_include_directories(operators PRIVATE ${CMAKE_CURRENT_LIST_DIR})

@@ -130,7 +130,7 @@ namespace regex
   bool isIdentifier(string);
   bool isValid(string);
 
-  bool isEmpty(string);
+  bool isEmpty(string*);
   bool checkExpression(string *, const string *);
 
   /*

@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 
-#include "lib/exceptions/expressionsException.h"
+#include "../../exceptions/expressionsException.h"
 #include "lib/validators/expressions.h"
 
 using std::cout;
