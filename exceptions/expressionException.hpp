@@ -8,11 +8,19 @@ using std::string;
 
 class expression_exception final : public exception
 {
-private:
-  char *message_;
+  const char* message_;
 
 public:
-  explicit expression_exception(char *msg);
-  explicit expression_exception(const string* msg);
-  char *what();
+  // Constructor to set the exception message
+  explicit expression_exception(const char* msg): message_(msg)
+  {
+  }
+
+  ~expression_exception() override
+  {
+    delete message_;
+  }
+
+
+  const char* what();
 };

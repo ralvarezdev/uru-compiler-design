@@ -1,25 +1,40 @@
+#include <algorithm>
+
 #include "words.hpp"
-
 #include "../letters/letters.hpp"
-
 #include "../../../../../exceptions/expressionException.hpp"
 
-void words::is_word(const string* text)
+words::words(): validators("Words")
+{
+}
+
+bool words::status0(const int c)
+{
+    return letters::is_letter(c);
+}
+
+
+bool words::is_word(const string* text, const bool alert)
 {
     if (text->empty())
     {
-        string msg = "Invalid word. Word must be at least of length 1.";
-        throw expression_exception(&msg);
+        if (!alert)
+            return false;
+
+        throw expression_exception("Invalid word. Word must be at least of length 1.");
     }
 
-    try{
-        for(const char c : *text)
-            letters::is_letter(c);
-    }
+    if (const vector<char> characters = get_characters(text);
+        std::ranges::all_of(characters.cbegin(), characters.cend(), [](const char c) { return status0(c); }))
+        return true;
 
-    catch(expression_exception* _)
-    {
-        string msg = "Invalid word. Only alphabetic characters are allowed.";
-        throw expression_exception(&msg);
-    }
+    if (!alert)
+        return false;
+
+    throw expression_exception("Invalid word. Only alphabetic characters are allowed.");
+}
+
+bool words::validate(const string* text, const bool alert)
+{
+    return is_word(text, alert);
 }

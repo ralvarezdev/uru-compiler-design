@@ -2,10 +2,19 @@
 
 #include<string>
 
+#include "../validators.hpp"
+
 using std::string;
 
-class identifiers {
+class identifiers final:public validators{
+    static bool is_extended_letter(int);
+    static bool status0(int);
+    static bool status1(int);
+
     public:
-        static bool is_letter(int, bool=false);
-        static void is_identifier(const string*);
+        identifiers();
+        ~identifiers() override=default;
+
+    bool validate(const string*, bool) override;
+    static bool is_identifier(const string*, bool=false);
 };

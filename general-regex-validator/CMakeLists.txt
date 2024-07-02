@@ -16,6 +16,6 @@ add_library(exceptions SHARED
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE exceptions
-  PRIVATE validators
+        PRIVATE exceptions
+        PRIVATE validators
 )

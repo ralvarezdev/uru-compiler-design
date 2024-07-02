@@ -6,27 +6,40 @@
 
 using std::string;
 
-bool digits::is_digit(const int c, const bool alert)
+digits::digits(): validators("Digits")
 {
-    if(isdigit(c))
-        return true;
-
-    if(!alert)
-        return false;
-
-    string msg ="Invalid whole number. Only digits are allowed.";
-    throw expression_exception(&msg);
 }
 
+bool digits::status0(const int c)
+{
+    return isdigit(c);
+}
 
-void digits::is_digit(const string* text){
-    if(text->length()!=1)
+bool digits::is_digit(const int c, const bool alert)
+{
+    if (status0(c))
+        return true;
+
+    if (!alert)
+        return false;
+
+    throw expression_exception("Invalid character. Only digits are allowed.");
+}
+
+bool digits::is_digit(const string* text, const bool alert)
+{
+    if (text->length() != 1)
     {
-        string msg ="Invalid digit. Digit must be of length 1.";
-        throw expression_exception(&msg);
+        if (!alert)
+            return false;
+
+        throw expression_exception("Invalid digit. Digit must be of length 1.");
     }
 
-    const unsigned char c= text->at(0);
+    return is_digit(text->at(0), alert);
+}
 
-    is_digit(c, true);
+bool digits::validate(const string* text, const bool alert)
+{
+    return is_digit(text, alert);
 }

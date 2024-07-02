@@ -1,28 +1,38 @@
 #include "letters.hpp"
-
 #include "../../../../../exceptions/expressionException.hpp"
+
+letters::letters():validators("Letters"){}
+
+bool letters::status0(const int c)
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
 
 bool letters::is_letter(const int c, const bool alert)
 {
-    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
+    if(status0(c))
         return true;
 
     if (!alert)
         return false;
 
-    string msg = "Invalid letter. It must be an alphabetic character.";
-    throw expression_exception(&msg);
+    throw expression_exception("Invalid letter. It must be an alphabetic character.");
 }
 
-void letters::is_letter(const string* text)
+bool letters::is_letter(const string* text, const bool alert)
 {
     if (text->length() != 1)
     {
-        string msg = "Invalid letter. Letter must be of length 1.";
-        throw expression_exception(&msg);
+        if(!alert)
+            return false;
+
+        throw expression_exception("Invalid letter. Letter must be of length 1.");
     }
 
-    const unsigned char c = text->at(0);
+    return is_letter(text->at(0), alert);
+}
 
-    is_letter(c);
+bool letters::validate(const string* text, const bool alert)
+{
+    return is_letter(text, alert);
 }

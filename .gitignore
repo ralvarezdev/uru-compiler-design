@@ -10,3 +10,4 @@ CMakeCache.txt
 # Ignore ALL files in ANY directory named build or CMakeFiles
 build/
 CMakeFiles/
+Testing/

@@ -1,43 +1,71 @@
 #include "floats.hpp"
-
 #include "../digits/digits.hpp"
-
 #include "../../../../../exceptions/expressionException.hpp"
 
-void floats::is_float(const string* text)
+floats::floats():validators("Floats"){}
+
+bool floats::status0(const int c)
 {
-    bool is_whole_section = true;
+    return digits::is_digit(c);
+}
+
+bool floats::status1(const int c)
+{
+    return c=='.';
+}
+
+bool floats::status2(const int c)
+{
+    return digits::is_digit(c);
+}
+
+
+bool floats::is_float(const string* text, const bool alert)
+{
+    int status = 0;
     int counter = 0;
 
     for (const char c : *text)
     {
-        if (c == '.')
+        if (status1(c))
         {
-            if (is_whole_section)
+            if (status==0&&counter>0)
             {
-                is_whole_section = false;
+                status+=2;
+                counter=0;
                 continue;
             }
 
-            string msg = "Invalid float. Only one decimal point is allowed.";
-            throw expression_exception(&msg);
+            if(!alert)
+                return false;
+
+            throw expression_exception("Invalid float. Only one decimal point is allowed.");
         }
 
-        try
+        if((status==0&&status0(c))||(status==2&&status2(c)))
         {
-            digits::is_digit(c);
             counter++;
+            continue;
         }
-        catch (expression_exception* _)
-        {
-            string msg = "Invalid float. Only digits and a decimal point are allowed.";
-            throw expression_exception(&msg);
-        }
+
+        if(!alert)
+            return false;
+
+        throw expression_exception("Invalid float. Only digits and a decimal point are allowed.");
     }
 
-    if (!is_whole_section && counter == 0)
+    if (status<2 || counter == 0)
     {
-        string msg = "Invalid float. At least one digit is required after decimal point.";
-        throw expression_exception(&msg);
+        if(!alert)
+            return false;
+
+        throw expression_exception("Invalid float. At least one digit is required after decimal point.");
     }
+
+    return true;
+}
+
+bool floats::validate(const string* text, const bool alert)
+{
+    return is_float(text, alert);
 }

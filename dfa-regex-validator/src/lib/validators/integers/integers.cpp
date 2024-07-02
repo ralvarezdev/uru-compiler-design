@@ -1,25 +1,37 @@
+#include<algorithm>
+
 #include "integers.hpp"
-
 #include "../digits/digits.hpp"
-
 #include "../../../../../exceptions/expressionException.hpp"
 
-void integers::is_integer(const string* text)
+integers::integers():validators("Integers"){}
+
+bool integers::status0(const int c)
+{
+    return digits::is_digit(c);
+}
+
+bool integers::is_integer(const string* text, const bool alert)
 {
     if (text->empty())
     {
-        string msg = "Invalid integer. Integer must be at least of length 1.";
-        throw expression_exception(&msg);
+        if(!alert)
+            return false;
+
+        throw expression_exception("Invalid integer. Integer must be at least of length 1.");
     }
 
-    try{
-        for(const char c : *text)
-            digits::is_digit(c);
-    }
+    if(const vector<char> characters=get_characters(text);
+        std::ranges::all_of(characters.cbegin(), characters.cend(),[](const char c){ return status0(c); }))
+        return true;
 
-    catch(expression_exception* _)
-    {
-        string msg = "Invalid integer. Only digits are allowed.";
-        throw expression_exception(&msg);
-    }
+    if(!alert)
+        return false;
+
+    throw expression_exception("Invalid integer. Only digits are allowed.");
+}
+
+bool integers::validate(const string* text,const bool alert)
+{
+    return is_integer(text, alert);
 }

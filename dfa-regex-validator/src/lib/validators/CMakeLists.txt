@@ -1,5 +1,5 @@
 add_library(validators STATIC
-        expressions.cpp
-        expressions.hpp)
+        validators.hpp
+        validators.cpp)
 
 target_include_directories(validators PRIVATE ${CMAKE_CURRENT_LIST_DIR})

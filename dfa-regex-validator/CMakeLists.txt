@@ -7,6 +7,7 @@ project(DFARegexValidator LANGUAGES CXX)
 
 add_executable(${PROJECT_NAME} ./src/main.cpp)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/validators)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/validators/digits)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/validators/operators)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/validators/floats)
@@ -23,6 +24,7 @@ add_library(exceptions SHARED
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
         PRIVATE exceptions
+        PRIVATE validators
         PRIVATE digits
         PRIVATE operators
         PRIVATE floats

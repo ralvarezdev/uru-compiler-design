@@ -2,9 +2,17 @@
 
 #include<string>
 
+#include"../validators.hpp"
+
 using std::string;
 
-class words {
+class  words final :public validators{
+    static bool status0(int);
+
     public:
-        static void is_word(const string*);
+        words();
+        ~words() override=default;
+
+        bool validate(const string*, bool) override;
+        static bool is_word(const string*, bool=false);
 };
