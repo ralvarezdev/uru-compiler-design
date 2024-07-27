@@ -3,7 +3,7 @@
   <component name="CMakePythonSetting">
     <option name="pythonIntegrationState" value="YES" />
   </component>
-  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/dfa-regex-validator">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/interpreter">
     <contentRoot DIR="$PROJECT_DIR$" />
   </component>
 </project>

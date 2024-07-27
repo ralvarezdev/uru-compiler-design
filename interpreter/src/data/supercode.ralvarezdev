@@ -1,0 +1,12 @@
+x = 9 / 2
+y = 2
+
+z = 3.1 + (x + y) - 2 * x
+
+w = z ^ 2
+
+t = root(w + 1.4)
+
+print(t)
+print(3 + 1)
+print(w + z)
