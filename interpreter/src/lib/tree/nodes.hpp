@@ -1,10 +1,12 @@
 #pragma once
 
 #include<deque>
+#include<iostream>
 
 #include "../tokens/tokens.hpp"
 
 using std::deque;
+using std::cout;
 
 class node
 {
@@ -19,8 +21,17 @@ public:
     ~node()
     {
         // Free memory recursively
-        delete next_sibling;
+        delete next_sibling;;
         delete first_child;
+
+        /*
+        // Debug
+        cout<<"Deleting data: ";
+        for(auto const& t : *data)
+            cout<<"'"<<t->get_key()<<"' ";
+        cout<<"\n";
+        */
+
         delete data;
     }
 
@@ -53,4 +64,7 @@ public:
     {
         this->next_sibling = next_sibling;
     }
+
+    string to_string(int);
+    string to_string();
 };

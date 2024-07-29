@@ -1,8 +1,10 @@
 #pragma once
 
+#include<iostream>
 #include<map>
 #include<string>
 
+using std::cout;
 using std::map;
 using std::string;
 
@@ -44,7 +46,6 @@ public:
 
     ~token_info()
     {
-        type_->clear();
         delete type_;
     }
 

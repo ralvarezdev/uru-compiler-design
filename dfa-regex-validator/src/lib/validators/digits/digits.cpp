@@ -2,7 +2,7 @@
 
 #include "digits.hpp"
 
-#include "../../../../../exceptions/expressionException.hpp"
+#include "../../../../../exceptions/expression_exception.hpp"
 
 using std::string;
 

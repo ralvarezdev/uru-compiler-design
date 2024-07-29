@@ -1,4 +1,4 @@
-#include "expressionException.hpp"
+#include "expression_exception.hpp"
 
 #include <cstring>
 
@@ -16,6 +16,5 @@ expression_exception::expression_exception(const string& msg)
 // Display error message when the the exception is thrown
 const char* expression_exception::what()
 {
-    return message_;
+    return this->message_;
 }
-

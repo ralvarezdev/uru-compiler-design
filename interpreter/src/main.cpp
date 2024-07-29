@@ -4,7 +4,7 @@
 #include<fstream>
 #include<deque>
 
-#include "../../exceptions/expressionException.hpp"
+#include "../../exceptions/expression_exception.hpp"
 #include "lib/tokens/tokens.hpp"
 #include "lib/tree/nodes.hpp"
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
@@ -18,9 +18,9 @@ using std::cout;
 namespace fs = std::filesystem;
 
 // Constants
-const bool DEBUG_TOKENS=true;
+const bool DEBUG_TOKENS=false;
 const bool DEBUG_LEXICAL_ANALYZER = false;
-const bool DEBUG_SYNTAX_ANALYZER = false;
+const bool DEBUG_SYNTAX_ANALYZER = true;
 const string ROOT_PATH = "interpreter";
 const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
 
@@ -86,8 +86,11 @@ int main()
 
             for(auto t: *tokens)
             {
-                // If it's not a identifier, delete the token info
-                if(t->get_info()->get_type()->at(tokens::t_identifiers))
+                // If it's not a identifier or it's a reserved word, delete the token info
+                if(!t->get_info()->get_type()->at(tokens::t_identifiers))
+                    delete t->get_info();
+
+                if(t->get_key()==reserved_words::root||t->get_key()==reserved_words::print)
                     delete t->get_info();
 
                 delete t;

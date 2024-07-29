@@ -4,7 +4,7 @@
 #include<cstring>
 
 #include "../tokens/tokens.hpp"
-#include"../../../../exceptions/expressionException.hpp"
+#include"../../../../exceptions/expression_exception.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/validators.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/digits/digits.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/integers/integers.hpp"
@@ -154,10 +154,9 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
 
                 // If it's not valid, throw an exception
                 if(!is_valid)
-                {
-                    const string msg = format("Lexical Error: Invalid token '{}' found at column {} in line {}",t_key, token_start+1, line_number);
-                    throw expression_exception(msg);
-                }
+                    throw expression_exception(
+                        format("Lexical Error: Invalid token '{}' found at column {} in line {}",
+                        t_key, token_start+1, line_number));
 
                 // Add token info
                 t_info = new token_info(token_types, token_start);
@@ -165,9 +164,10 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                 if(this->debug_)
                     cout<<t_info->to_string()<<"\n\n";
 
-                // If it's an identifier, store it
+                // If it's an identifier but not a reserved word, store it
                 if(token_types->at(tokens::t_identifiers))
-                    this->add_token(t_key, t_info);
+                    if(t_key!=reserved_words::print&&t_key!=reserved_words::root)
+                        this->add_token(t_key, t_info);
 
                 // Add token
                 tokens->emplace_back(new token(t_key, t_info));
@@ -196,8 +196,9 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
         }
 
         // Invalid character
-        const string msg = format("Lexical Error: Invalid character '{}' found at column {} in line {}",line[i], column_number-1, line_number);
-        throw expression_exception(msg);
+        throw expression_exception(
+            format("Lexical Error: Invalid character '{}' found at column {} in line {}",
+            line[i], column_number-1, line_number));
     }
 
     return tokens;

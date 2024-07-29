@@ -2,7 +2,7 @@
 
 #include "words.hpp"
 #include "../letters/letters.hpp"
-#include "../../../../../exceptions/expressionException.hpp"
+#include "../../../../../exceptions/expression_exception.hpp"
 
 words::words(): validators("Words")
 {

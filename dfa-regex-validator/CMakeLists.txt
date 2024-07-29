@@ -8,8 +8,8 @@ project(DFARegexValidator LANGUAGES CXX)
 add_executable(${PROJECT_NAME} ./src/main.cpp)
 
 add_library(exceptions SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expressionException.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expressionException.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expression_exception.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expression_exception.cpp
 )
 
 add_library(validators SHARED

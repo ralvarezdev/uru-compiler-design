@@ -36,13 +36,9 @@ public:
         for(auto const& x : this->symbols_table_)
             delete x.second;
 
-        this->symbols_table_.clear();
-
         // Clear validators
         for(auto const& x : this->validators_)
             delete x.second;
-
-        this->validators_.clear();
     }
 
     token_info* get_token(const string&);

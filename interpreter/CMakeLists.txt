@@ -13,8 +13,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/lexical-analyzer)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/syntax-analyzer)
 
 add_library(exceptions SHARED
-        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expressionException.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expressionException.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expression_exception.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expression_exception.cpp
 )
 
 add_library(validators SHARED
@@ -93,6 +93,7 @@ target_link_libraries(identifiers
 )
 
 target_link_libraries(lexical_analyzer
+        PRIVATE exceptions
         PRIVATE digits
         PRIVATE integers
         PRIVATE floats
@@ -108,6 +109,7 @@ target_link_libraries(tree
 )
 
 target_link_libraries(syntax_analyzer
+        PRIVATE exceptions
         PRIVATE digits
         PRIVATE integers
         PRIVATE floats
