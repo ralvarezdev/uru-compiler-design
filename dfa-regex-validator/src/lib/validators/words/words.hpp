@@ -6,13 +6,14 @@
 
 using std::string;
 
-class  words final :public validators{
+class words final : public validators
+{
     static bool status0(int);
 
-    public:
-        words();
-        ~words() override=default;
+public:
+    words();
+    ~words() override = default;
 
-        bool validate(const string*, bool) override;
-        static bool is_word(const string*, bool=false);
+    bool validate(const string*, bool) override;
+    static bool is_word(const string*, bool = false);
 };

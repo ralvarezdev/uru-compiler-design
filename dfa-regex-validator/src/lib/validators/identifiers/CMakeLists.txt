@@ -1,4 +1,4 @@
-add_library(identifiers STATIC
+add_library(identifiers SHARED
         identifiers.cpp
         identifiers.hpp)
 

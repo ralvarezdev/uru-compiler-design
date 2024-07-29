@@ -1,4 +1,4 @@
-add_library(words STATIC
+add_library(words SHARED
         words.cpp
         words.hpp)
 

@@ -1,4 +1,4 @@
-add_library(floats STATIC
+add_library(floats SHARED
         floats.cpp
         floats.hpp)
 

@@ -1,4 +1,4 @@
-add_library(validators STATIC
+add_library(validators SHARED
         validators.hpp
         validators.cpp)
 

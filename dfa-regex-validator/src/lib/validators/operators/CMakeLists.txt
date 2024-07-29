@@ -1,4 +1,4 @@
-add_library(operators STATIC
+add_library(operators SHARED
         operators.cpp
         operators.hpp)
 

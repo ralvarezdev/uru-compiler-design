@@ -1,5 +1,5 @@
 #pragma once
 
-class syntax_analyzer {
-
+class syntax_analyzer
+{
 };

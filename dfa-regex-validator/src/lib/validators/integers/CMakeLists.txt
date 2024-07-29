@@ -1,4 +1,4 @@
-add_library(integers STATIC
+add_library(integers SHARED
         integers.cpp
         integers.hpp)
 

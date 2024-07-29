@@ -2,10 +2,12 @@
 #include<filesystem>
 #include<string>
 #include<fstream>
+#include<vector>
 
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
 #include "lib/syntax-analyzer/syntax_analyzer.hpp"
 
+using std::vector;
 using std::getline;
 using std::ifstream;
 using std::string;
@@ -13,8 +15,10 @@ using std::cout;
 namespace fs = std::filesystem;
 
 // Constants
-const string root_path = "interpreter";
-const string file_to_interpret = "supercode.ralvarezdev";
+const bool DEBUG_TOKENS=false;
+const bool DEBUG_LEXICAL_ANALYZER = false;
+const string ROOT_PATH = "interpreter";
+const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
 
 // Function prototypes
 void move_to_root();
@@ -23,39 +27,53 @@ void move_to_data();
 int main()
 {
     string line;
-    int line_number = 1, column_number;
+    vector<token*>* tokens;
+    int line_number = 1;
 
     // Move to the data directory of the project
     move_to_data();
 
     // Initalize analyzers
-    auto* lexical = new lexical_analyzer();
-    auto* syntax = new syntax_analyzer();
+    auto lexical = lexical_analyzer(DEBUG_LEXICAL_ANALYZER);
+    auto syntax = syntax_analyzer();
 
     // Open the file to interpret
-    auto file_to_interpret_stream = ifstream(file_to_interpret);
+    auto file_to_interpret_stream = ifstream(FILE_TO_INTERPRET);
 
     // Check if the file was opened successfully
-    if(!file_to_interpret_stream.is_open())
+    if (!file_to_interpret_stream.is_open())
     {
-        cout << "Error: Could not open file " << file_to_interpret << "\n";
+        cout << "Error: Could not open file " << FILE_TO_INTERPRET << "\n";
         return 1;
     }
 
     // Read file line by line
-    while(file_to_interpret_stream.good())
+    try
     {
-        // Set current column to 1
-        column_number = 1;
+        while (file_to_interpret_stream.good())
+        {
+            // Read line
+            getline(file_to_interpret_stream, line);
 
-        // Read line
-        getline(file_to_interpret_stream,line);
-        cout << line << "\n";
+            // Parse line
+            tokens = lexical.read_line(line, line_number);
 
-        // Increase current line
-        line_number++;
+            // Print tokens
+            if(DEBUG_TOKENS)
+                for(auto t: *tokens)
+                    cout<<t->to_string()<<"\n";
+
+            // Analyze syntax
+
+            // Increase current line
+            line_number++;
+        }
     }
-
+    catch (const std::exception& e)
+    {
+        cout << "Error: " << e.what() << "\n";
+        return 1;
+    }
     return 0;
 }
 
@@ -63,7 +81,7 @@ int main()
 void move_to_root()
 {
     fs::path root = fs::current_path();
-    while(root.filename() != root_path)
+    while (root.filename() != ROOT_PATH)
     {
         fs::current_path(root.parent_path());
         root = fs::current_path();

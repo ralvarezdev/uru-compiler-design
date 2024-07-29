@@ -1,4 +1,4 @@
-add_library(digits STATIC
+add_library(digits SHARED
         digits.cpp
         digits.hpp)
 

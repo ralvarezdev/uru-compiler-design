@@ -1,4 +1,4 @@
-add_library(letters STATIC
+add_library(letters SHARED
         letters.cpp
         letters.hpp)
 

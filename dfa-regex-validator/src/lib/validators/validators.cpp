@@ -14,11 +14,11 @@ string validators::get_name()
     return name_;
 }
 
-vector<char> validators::get_characters(const string *text)
+vector<char> validators::get_characters(const string* text)
 {
     vector<char> characters;
 
-    for(char c: *text)
+    for (char c : *text)
         characters.push_back(c);
 
     return characters;

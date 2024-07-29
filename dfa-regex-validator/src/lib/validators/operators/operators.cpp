@@ -19,13 +19,13 @@ operators::operators(): validators("Operators")
 
 bool operators::status0(const int c, const int* valid_op)
 {
-    return std::ranges::any_of(valid_op, valid_op + 5, [c](const int op) { return c == op; });
+    return std::ranges::any_of(valid_op, valid_op + 9, [c](const int op) { return c == op; });
 }
 
 bool operators::is_operator(const int c, const bool alert)
 {
     // List of valid operators
-    constexpr int valid_op[]{'+', '-', '*', '/', '%'};
+    constexpr int valid_op[]{'+', '-', '*', '/', '%', '^', '(', ')', '='};
 
     if (status0(c, valid_op))
         return true;
