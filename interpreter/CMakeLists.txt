@@ -8,6 +8,7 @@ project(Interpreter LANGUAGES CXX)
 add_executable(${PROJECT_NAME} ./src/main.cpp)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/tokens)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/tree)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/lexical-analyzer)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/syntax-analyzer)
 
@@ -102,6 +103,22 @@ target_link_libraries(lexical_analyzer
         PRIVATE tokens
 )
 
+target_link_libraries(tree
+        PRIVATE tokens
+)
+
+target_link_libraries(syntax_analyzer
+        PRIVATE digits
+        PRIVATE integers
+        PRIVATE floats
+        PRIVATE letters
+        PRIVATE words
+        PRIVATE operators
+        PRIVATE identifiers
+        PRIVATE tokens
+        PRIVATE tree
+)
+
 target_link_libraries(${PROJECT_NAME}
         PRIVATE exceptions
         PRIVATE validators
@@ -113,6 +130,7 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE operators
         PRIVATE identifiers
         PRIVATE tokens
+        PRIVATE tree
         PRIVATE lexical_analyzer
         PRIVATE syntax_analyzer
 )

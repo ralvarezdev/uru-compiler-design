@@ -20,52 +20,6 @@ using std::isspace;
 using std::pair;
 using std::to_string;
 
-// - Token info class
-
-// Constructor
-token_info::token_info(map<tokens::t_type, bool>* type,const int column)
-{
-    this->type_ = type;
-    this->column_ = column;
-}
-
-// To string
-string token_info::to_string()
-{
-    stringstream msg;
-
-    msg<<"Token types: ";
-    for(auto const& [key,value] : *this->type_)
-    {
-        if(value)
-            msg<<"'"<<tokens::to_string(key)<<"' ";
-    }
-    msg<<"\n"
-        <<"Token column: '"<<this->column_<<"'\n";
-
-    return msg.str();
-}
-
-// - Token class
-
-// Constructor
-token::token(const string& key, token_info* info)
-{
-    this->key_ = key;
-    this->info_ = info;
-}
-
-// To string
-string token::to_string()
-{
-    stringstream msg;
-
-    msg<<"Token name: "<<this->key_<<"\n";
-    msg<<this->info_->to_string();
-
-    return msg.str();
-}
-
 // - Lexical analyzer class
 
 // Constructor
@@ -122,9 +76,9 @@ void lexical_analyzer::print_tokens()
 }
 
 // Read line
-vector<token*>* lexical_analyzer::read_line(const string& line, int line_number)
+deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
 {
-    auto* tokens = new vector<token*>();
+    auto* tokens = new deque<token*>();
     string t_key;
     token_info* t_info;
     map<tokens::t_type,bool>* token_types;
@@ -201,11 +155,8 @@ vector<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                 // If it's not valid, throw an exception
                 if(!is_valid)
                 {
-                    const string msg = format("Invalid token '{}' found at column {} in line {}",t_key, token_start+1, line_number);
-                    auto* msg_char_array = new char[msg.length() + 1];
-                    strcpy(msg_char_array, msg.c_str());
-
-                    throw expression_exception(msg_char_array);
+                    const string msg = format("Lexical Error: Invalid token '{}' found at column {} in line {}",t_key, token_start+1, line_number);
+                    throw expression_exception(msg);
                 }
 
                 // Add token info
@@ -215,10 +166,8 @@ vector<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                     cout<<t_info->to_string()<<"\n\n";
 
                 // If it's an identifier, store it
-                /*
-                if(token_types->at(t_identifiers))
-                    this->add_token(t_key, token_info(token_types));
-                */
+                if(token_types->at(tokens::t_identifiers))
+                    this->add_token(t_key, t_info);
 
                 // Add token
                 tokens->emplace_back(new token(t_key, t_info));
@@ -247,11 +196,8 @@ vector<token*>* lexical_analyzer::read_line(const string& line, int line_number)
         }
 
         // Invalid character
-        const string msg = format("Invalid character '{}' found at column {} in line {}",line[i], column_number-1, line_number);
-        auto* msg_char_array = new char[msg.length() + 1];
-        strcpy(msg_char_array, msg.c_str());
-
-        throw expression_exception(msg_char_array);
+        const string msg = format("Lexical Error: Invalid character '{}' found at column {} in line {}",line[i], column_number-1, line_number);
+        throw expression_exception(msg);
     }
 
     return tokens;

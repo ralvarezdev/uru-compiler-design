@@ -2,13 +2,15 @@
 #include<filesystem>
 #include<string>
 #include<fstream>
-#include<vector>
+#include<deque>
 
 #include "../../exceptions/expressionException.hpp"
+#include "lib/tokens/tokens.hpp"
+#include "lib/tree/nodes.hpp"
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
 #include "lib/syntax-analyzer/syntax_analyzer.hpp"
 
-using std::vector;
+using std::deque;
 using std::getline;
 using std::ifstream;
 using std::string;
@@ -18,6 +20,7 @@ namespace fs = std::filesystem;
 // Constants
 const bool DEBUG_TOKENS=true;
 const bool DEBUG_LEXICAL_ANALYZER = false;
+const bool DEBUG_SYNTAX_ANALYZER = false;
 const string ROOT_PATH = "interpreter";
 const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
 
@@ -28,15 +31,16 @@ void move_to_data();
 int main()
 {
     string line;
-    vector<token*>* tokens;
+    deque<token*>* tokens=nullptr;
     int line_number = 1;
+    node* root=nullptr;
 
     // Move to the data directory of the project
     move_to_data();
 
     // Initalize analyzers
     auto lexical = lexical_analyzer(DEBUG_LEXICAL_ANALYZER);
-    auto syntax = syntax_analyzer();
+    auto syntax = syntax_analyzer(DEBUG_SYNTAX_ANALYZER);
 
     // Open the file to interpret
     auto file_to_interpret_stream = ifstream(FILE_TO_INTERPRET);
@@ -65,14 +69,46 @@ int main()
                     cout<<t->to_string()<<"\n";
 
             // Analyze syntax
+            if(tokens->empty())
+            {
+                line_number++;
+                continue;
+            }
+
+            // Parse line
+            root=syntax.parse_line(line_number,tokens);
 
             // Increase current line
             line_number++;
+
+            // Free memory
+            delete root;
+
+            for(auto t: *tokens)
+            {
+                // If it's not a identifier, delete the token info
+                if(t->get_info()->get_type()->at(tokens::t_identifiers))
+                    delete t->get_info();
+
+                delete t;
+            }
         }
     }
     catch (expression_exception& e)
     {
-        cout << "Error: " << e.what() << "\n";
+        // Free memory
+        delete root;
+
+        for(auto t: *tokens)
+        {
+            // If it's not a identifier, delete the token info
+            if(t->get_info()->get_type()->at(tokens::t_identifiers))
+                delete t->get_info();
+
+            delete t;
+        }
+
+        cout << e.what() << "\n";
         return 1;
     }
     return 0;
