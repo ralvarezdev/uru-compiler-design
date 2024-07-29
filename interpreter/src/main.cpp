@@ -4,6 +4,7 @@
 #include<fstream>
 #include<vector>
 
+#include "../../exceptions/expressionException.hpp"
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
 #include "lib/syntax-analyzer/syntax_analyzer.hpp"
 
@@ -15,7 +16,7 @@ using std::cout;
 namespace fs = std::filesystem;
 
 // Constants
-const bool DEBUG_TOKENS=false;
+const bool DEBUG_TOKENS=true;
 const bool DEBUG_LEXICAL_ANALYZER = false;
 const string ROOT_PATH = "interpreter";
 const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
@@ -69,7 +70,7 @@ int main()
             line_number++;
         }
     }
-    catch (const std::exception& e)
+    catch (expression_exception& e)
     {
         cout << "Error: " << e.what() << "\n";
         return 1;

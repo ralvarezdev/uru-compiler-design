@@ -26,9 +26,10 @@ namespace  reserved_words
 class token_info final
 {
     map<tokens::t_type, bool>* type_;
+    int column_{};
 
 public:
-    explicit token_info(map<tokens::t_type, bool>* type);
+    explicit token_info(map<tokens::t_type, bool>* type, int);
     token_info()=default;
 
     ~token_info()
@@ -43,19 +44,12 @@ public:
         return this->type_;
     }
 
-    string to_string()
+    int get_column()
     {
-        stringstream msg;
-
-        msg<<"Token types: ";
-        for(auto const& [key,value] : *this->type_)
-        {
-            if(value)
-                msg<<tokens::to_string(key)<<" ";
-        }
-
-        return msg.str();
+        return this->column_;
     }
+
+    string to_string();
 };
 
 // Token class
@@ -84,25 +78,17 @@ public:
         return this->info_;
     }
 
-    string to_string()
-    {
-        stringstream msg;
-
-        msg<<"Token name: "<<this->key_<<"\n";
-        msg<<this->info_->to_string();
-
-        return msg.str();
-    }
+    string to_string();
 };
 
 // Lexical analyzer class
 class lexical_analyzer final
 {
-    map<string, token_info> symbols_table_;
+    map<string, token_info*> symbols_table_;
     map<tokens::t_type,validators*> validators_;
     bool debug_{};
 
-    void add_token(const string&, const token_info&);
+    void add_token(const string&, token_info*);
     void remove_token(const string&);
     map<tokens::t_type, bool>* validate_token(const string&);
 
@@ -113,6 +99,9 @@ public:
     ~lexical_analyzer()
     {
         // Clear symbols table
+        for(auto const& x : this->symbols_table_)
+            delete x.second;
+
         this->symbols_table_.clear();
 
         // Clear validators
@@ -122,8 +111,8 @@ public:
         this->validators_.clear();
     }
 
-    token_info get_token(const string&);
-    void update_token(const string&, const token_info&);
+    token_info* get_token(const string&);
+    void update_token(const string&, token_info*);
     void print_tokens();
     vector<token*>* read_line(const string&, int);
 };
