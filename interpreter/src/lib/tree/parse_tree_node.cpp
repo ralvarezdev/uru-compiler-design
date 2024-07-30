@@ -1,4 +1,4 @@
-#include "nodes.hpp"
+#include "parse_tree_node.hpp"
 
 #include<sstream>
 #include<iostream>
@@ -11,7 +11,7 @@ using std::cout;
 // - Node class
 
 // Constructor
-node::node(deque<token*>* data, node* first_child, node* next_sibling)
+parse_tree_node::parse_tree_node(deque<token*>* data, parse_tree_node* first_child, parse_tree_node* next_sibling)
 {
     this->data = data;
     this->first_child = first_child;
@@ -19,7 +19,7 @@ node::node(deque<token*>* data, node* first_child, node* next_sibling)
 }
 
 // To string
-string node::to_string(int level)
+string parse_tree_node::to_string(int level)
 {
     const auto tab = string(level, '\t');
 
@@ -45,7 +45,7 @@ string node::to_string(int level)
     return msg.str();
 }
 
-string node::to_string()
+string parse_tree_node::to_string()
 {
     return this->to_string(0);
 }

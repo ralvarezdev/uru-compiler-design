@@ -6,7 +6,8 @@
 
 #include "../../exceptions/expression_exception.hpp"
 #include "lib/tokens/tokens.hpp"
-#include "lib/tree/nodes.hpp"
+#include "lib/tree/parse_tree_node.hpp"
+#include "lib/tree/syntax_tree_node.hpp"
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
 #include "lib/syntax-analyzer/syntax_analyzer.hpp"
 
@@ -33,7 +34,8 @@ int main()
     string line;
     deque<token*>* tokens=nullptr;
     int line_number = 1;
-    node* root=nullptr;
+    parse_tree_node* parse_root=nullptr;
+    syntax_tree_node* syntax_root=nullptr;
 
     // Move to the data directory of the project
     move_to_data();
@@ -75,14 +77,20 @@ int main()
                 continue;
             }
 
-            // Parse line
-            root=syntax.parse_line(line_number,tokens);
+            // Parse line and get parse tree root node
+            parse_root=syntax.parse_line(line_number,tokens);
 
             // Increase current line
             line_number++;
 
+            // Get syntax tree root node
+            syntax_root=syntax_tree_node::get_syntax_tree_node(parse_root);
+
+            cout<<syntax_root->to_string();
+
             // Free memory
-            delete root;
+            delete parse_root;
+            delete syntax_root;
 
             for(auto t: *tokens)
             {
@@ -100,7 +108,8 @@ int main()
     catch (expression_exception& e)
     {
         // Free memory
-        delete root;
+        delete parse_root;
+        delete syntax_root;
 
         for(auto t: *tokens)
         {

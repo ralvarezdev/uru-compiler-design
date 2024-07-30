@@ -8,17 +8,21 @@
 using std::deque;
 using std::cout;
 
-class node
+// - Parse tree node class
+class parse_tree_node
 {
     deque<token*>* data;
-    node *first_child;
-    node *next_sibling;
+    parse_tree_node *first_child;
+    parse_tree_node *next_sibling;
+
+    string to_string(int);
 
 public:
-    explicit node(deque<token*>*, node*, node*);
-    node(): node(nullptr, nullptr, nullptr) {};
+    explicit parse_tree_node(deque<token*>*, parse_tree_node*, parse_tree_node*);
+    explicit parse_tree_node(deque<token*>* data): parse_tree_node(data, nullptr, nullptr) {};
+    parse_tree_node(): parse_tree_node(nullptr) {};
 
-    ~node()
+    ~parse_tree_node()
     {
         // Free memory recursively
         delete next_sibling;;
@@ -40,12 +44,12 @@ public:
         return data;
     }
 
-    node *get_first_child()
+    parse_tree_node *get_first_child()
     {
         return first_child;
     }
 
-    node *get_next_sibling()
+    parse_tree_node *get_next_sibling()
     {
         return next_sibling;
     }
@@ -55,16 +59,15 @@ public:
         this->data = data;
     }
 
-    void set_first_child(node* first_child)
+    void set_first_child(parse_tree_node* first_child)
     {
         this->first_child = first_child;
     }
 
-    void set_next_sibling(node* next_sibling)
+    void set_next_sibling(parse_tree_node* next_sibling)
     {
         this->next_sibling = next_sibling;
     }
 
-    string to_string(int);
     string to_string();
 };

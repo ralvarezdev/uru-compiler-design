@@ -17,9 +17,9 @@ syntax_analyzer::syntax_analyzer(const bool debug)
 }
 
 // Parse line
-node* syntax_analyzer::parse_line(const int line_number, deque<token*>* tokens)
+parse_tree_node* syntax_analyzer::parse_line(const int line_number, deque<token*>* tokens)
 {
-    node* root = new node();
+    parse_tree_node* root = new parse_tree_node();
 
     // Clone tokens
     auto* node_data = new deque<token*>();
@@ -32,6 +32,18 @@ node* syntax_analyzer::parse_line(const int line_number, deque<token*>* tokens)
     // Parse expression
     parse_expression(line_number,root);
 
+    // Check if the expression it's a reserved word
+    token* first_token=node_data->front();
+
+    if(first_token->get_info()->get_type()->at(tokens::t_words))
+    {
+        string t_key=first_token->get_key();
+
+        if(t_key==reserved_words::print||t_key==reserved_words::root)
+            // Remove repeated expression
+                root=root->get_first_child();
+    }
+
     if(this->debug_)
         cout << root->to_string();
 
@@ -39,21 +51,21 @@ node* syntax_analyzer::parse_line(const int line_number, deque<token*>* tokens)
 }
 
 // Parse expression
-void syntax_analyzer::parse_expression(const int line_number,node* root)
+void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* root)
 {
     token* t;
     deque<token*>* tokens = root->get_data(),* children_tokens, *inner_children_tokens;
-    deque<node*> inner_children_nodes,children_nodes;
+    deque<parse_tree_node*> inner_children_nodes,children_nodes;
     int i=static_cast<int>(tokens->size())-1, tokens_start;
 
     if(tokens->size() == 1)
         return;
 
     // Intialize children nodes
-    children_nodes = deque<node*>();
+    children_nodes = deque<parse_tree_node*>();
 
     // Initialize inner children_nodes nodes
-    inner_children_nodes = deque<node*>();
+    inner_children_nodes = deque<parse_tree_node*>();
 
     // Initialize children nodes tokens
     children_tokens = new deque<token*>();
@@ -74,7 +86,7 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
         children_tokens->push_back(t);
 
         // Set left node
-        children_nodes.push_back(new node(children_tokens, nullptr, nullptr));
+        children_nodes.push_back(new parse_tree_node(children_tokens));
     }
 
     else
@@ -112,7 +124,7 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
                 i--;
 
                 // Set inner node
-                inner_children_nodes.push_back(new node(inner_children_tokens, nullptr, nullptr));
+                inner_children_nodes.push_back(new parse_tree_node(inner_children_tokens));
             }
 
         // Set "(" token
@@ -120,7 +132,7 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
         inner_children_tokens->push_back(children_tokens->at(tokens_start));
 
         // Set inner node
-        inner_children_nodes.push_back(new node(inner_children_tokens, nullptr, nullptr));
+        inner_children_nodes.push_back(new parse_tree_node(inner_children_tokens));
 
         // Set expression token
         inner_children_tokens = new deque<token*>();
@@ -129,21 +141,21 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
             inner_children_tokens->push_back(children_tokens->at(j));
 
         // Set inner node
-        inner_children_nodes.push_back(new node(inner_children_tokens, nullptr, nullptr));
+        inner_children_nodes.push_back(new parse_tree_node(inner_children_tokens));
 
         // Set ")" token
         inner_children_tokens = new deque<token*>();
         inner_children_tokens->push_back(children_tokens->back());
 
         // Set inner node
-        inner_children_nodes.push_back(new node(inner_children_tokens, nullptr, nullptr));
+        inner_children_nodes.push_back(new parse_tree_node(inner_children_tokens));
 
         // Set siblings
         for(int j=0;j<inner_children_nodes.size()-1;j++)
             inner_children_nodes.at(j)->set_next_sibling(inner_children_nodes.at(j+1));
 
         // Set last child node
-        children_nodes.push_back(new node(children_tokens,inner_children_nodes.front(),nullptr));
+        children_nodes.push_back(new parse_tree_node(children_tokens,inner_children_nodes.front(),nullptr));
 
         // Parse expression
         parse_expression(line_number, inner_children_nodes.at(tokens_start+1));
@@ -176,7 +188,7 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
     inner_children_tokens->push_back(t);
 
     // Set operator node
-    children_nodes.push_front( new node(inner_children_tokens,nullptr,nullptr));
+    children_nodes.push_front( new parse_tree_node(inner_children_tokens));
 
     // Check if there are more nodes
     if(i<0)
@@ -185,13 +197,31 @@ void syntax_analyzer::parse_expression(const int line_number,node* root)
             t->get_info()->get_column(),line_number
             ));
 
+    // Check if it's an assignment operator
+    if(t->get_key()=="=")
+    {
+        // Check if there's more than one token at the left side of the assignment operator
+        if(i>0)
+            throw expression_exception(format(
+                "Syntax Error: There's more than one token before '=' at column {} in line {}",
+                t->get_info()->get_column(),line_number
+                ));
+
+        // Check if it's an identifier
+        if(!(t=tokens->at(i))->get_info()->get_type()->at(tokens::t_identifiers))
+            throw expression_exception(format(
+                "Syntax Error: Missing identifier before '=' at column {} in line {}",
+                t->get_info()->get_column(),line_number
+                ));
+    }
+
     // Set expression child tokens
     inner_children_tokens = new deque<token*>();
     while(i>=0)
         inner_children_tokens->push_front(tokens->at(i--));
 
     // Set expression node
-    children_nodes.push_front(new node(inner_children_tokens, nullptr, nullptr));
+    children_nodes.push_front(new parse_tree_node(inner_children_tokens));
 
     // Set siblings
     for(int j=0;j<children_nodes.size()-1;j++)
