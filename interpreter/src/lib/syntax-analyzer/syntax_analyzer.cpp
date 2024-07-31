@@ -4,22 +4,17 @@
 #include<iostream>
 
 #include "../../../../exceptions/expression_exception.hpp"
+#include "../tokens/tokens.hpp"
 
 using std::format;
 using std::cout;
 
 // - Syntax analyzer class
 
-// Constructor
-syntax_analyzer::syntax_analyzer(const bool debug)
-{
-    this->debug_ = debug;
-}
-
 // Parse line
 parse_tree_node* syntax_analyzer::parse_line(const int line_number, deque<token*>* tokens)
 {
-    parse_tree_node* root = new parse_tree_node();
+    auto* root = new parse_tree_node();
 
     // Clone tokens
     auto* node_data = new deque<token*>();
@@ -35,14 +30,9 @@ parse_tree_node* syntax_analyzer::parse_line(const int line_number, deque<token*
     // Check if the expression it's a reserved word
     token* first_token=node_data->front();
 
-    if(first_token->get_info()->get_type()->at(tokens::t_words))
-    {
-        string t_key=first_token->get_key();
-
-        if(t_key==reserved_words::print||t_key==reserved_words::root)
-            // Remove repeated expression
-                root=root->get_first_child();
-    }
+    // If it's a reserved word, remove repeated expression
+    if(first_token->is_reserved_word())
+        root=root->get_first_child();
 
     if(this->debug_)
         cout << root->to_string();
@@ -64,20 +54,14 @@ void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* ro
     // Intialize children nodes
     children_nodes = deque<parse_tree_node*>();
 
-    // Initialize inner children_nodes nodes
-    inner_children_nodes = deque<parse_tree_node*>();
-
     // Initialize children nodes tokens
     children_tokens = new deque<token*>();
-
-    // Initialize inner children nodes tokens
-    inner_children_tokens = new deque<token*>();
 
     // Check if it's an expression of type "(" + expression + ")"
     if((t=tokens->at(i--))->get_key()!=")")
     {
         // Check if it's an operator
-        if(t->get_info()->get_type()->at(tokens::t_operators))
+        if(t->is_operator())
             throw expression_exception(format(
                 "Syntax Error: Missing expression at column {} in line {}",
                 t->get_info()->get_column(),line_number
@@ -91,6 +75,9 @@ void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* ro
 
     else
     {
+        // Initialize inner children_nodes nodes
+        inner_children_nodes = deque<parse_tree_node*>();
+
         children_tokens->push_front(t);
 
         if(i==0)
@@ -113,8 +100,7 @@ void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* ro
 
         // Check if there's a reserved word
         tokens_start=0;
-        if(i>=0&&(t=tokens->at(i))->get_info()->get_type()->at(tokens::t_words))
-            if(t->get_key()==reserved_words::print||t->get_key()==reserved_words::root)
+        if(i>=0&&(t=tokens->at(i))->is_reserved_word())
             {
                 // Set reserved word token
                 inner_children_tokens=new deque<token*>();
@@ -170,7 +156,7 @@ void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* ro
     }
 
     // Check if it's an operator
-    if(!(t=tokens->at(i--))->get_info()->get_type()->at(tokens::t_operators))
+    if(!(t=tokens->at(i--))->is_operator())
         throw expression_exception(format(
             "Syntax Error: Missing operator before '(' at column {} in line {}",
             t->get_info()->get_column(),line_number
@@ -198,21 +184,28 @@ void syntax_analyzer::parse_expression(const int line_number,parse_tree_node* ro
             ));
 
     // Check if it's an assignment operator
-    if(t->get_key()=="=")
+    if(t->is_assignment())
     {
         // Check if there's more than one token at the left side of the assignment operator
         if(i>0)
             throw expression_exception(format(
                 "Syntax Error: There's more than one token before '=' at column {} in line {}",
                 t->get_info()->get_column(),line_number
-                ));
+            ));
+
+        // Check if it's a reserved word
+        if(t->is_reserved_word())
+            throw expression_exception(format(
+                "Syntax Error: Reserved words cannot be used before '=' at column {} in line {}",
+                t->get_info()->get_column(),line_number
+            ));
 
         // Check if it's an identifier
         if(!(t=tokens->at(i))->get_info()->get_type()->at(tokens::t_identifiers))
             throw expression_exception(format(
                 "Syntax Error: Missing identifier before '=' at column {} in line {}",
                 t->get_info()->get_column(),line_number
-                ));
+            ));
     }
 
     // Set expression child tokens

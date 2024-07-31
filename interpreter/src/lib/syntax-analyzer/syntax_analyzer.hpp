@@ -12,7 +12,7 @@ class syntax_analyzer
     bool debug_;
 
 public:
-    explicit syntax_analyzer(bool);
+    explicit syntax_analyzer(const bool debug): debug_(debug){};
     syntax_analyzer(): syntax_analyzer(false) {};
 
     parse_tree_node* parse_line(int,deque<token*>*);

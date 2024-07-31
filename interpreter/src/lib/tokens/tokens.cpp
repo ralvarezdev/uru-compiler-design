@@ -11,20 +11,28 @@ string tokens::to_string(t_type type)
 {
     switch(type)
     {
+        /*
     case t_digits:
         return "digit";
+        */
+    case t_integers:
+        return "integer";
     case t_floats:
         return "float";
     case t_identifiers:
         return "identifier";
-    case t_integers:
-        return "integer";
+    /*
     case t_letters:
         return "letter";
+        */
+    case t_reserved_words:
+        return "reserved word";
     case t_operators:
         return "operator";
+    /*
     case t_words:
         return "word";
+        */
     default:
         return "undefined";
     }
@@ -33,25 +41,101 @@ string tokens::to_string(t_type type)
 // - Token info class
 
 // Constructor
-token_info::token_info(map<tokens::t_type, bool>* type,const int column)
+token_info::token_info(map<tokens::t_type, bool>* type,const int column, string& key)
 {
-    this->type_ = type;
+    this->is_undefined_=!type;
     this->column_ = column;
+
+    if(this->is_undefined_)
+        return;
+
+    this->type_ = type;
+    this->data_=map<tokens::t_type, token_data*>();
+
+    // Store possible values
+    for(int i=0; i<tokens::t_end; i++)
+    {
+        const auto t_type=static_cast<tokens::t_type>(i);
+
+        // Check if type is valid
+        if(!this->type_->at(t_type))
+            continue;
+
+        switch(t_type)
+        {
+        case tokens::t_identifiers:
+        case tokens::t_operators:
+        case tokens::t_reserved_words:
+            this->data_[t_type]=new token_data_string(key);
+            break;
+
+        case tokens::t_integers:
+            this->data_[t_type]=new token_data_int(stoi(key));
+            break;
+
+        case tokens::t_floats:
+            this->data_[t_type]=new token_data_float(stof(key));
+            break;
+
+        default:
+            this->data_[t_type]=nullptr;
+            break;
+        }
+    }
 }
 
 // To string
 string token_info::to_string()
 {
     stringstream msg;
+    token_data* t_data;
 
-    msg<<"Token types: ";
-    for(auto const& [key,value] : *this->type_)
+    msg<<"Token column: '"<<this->column_<<"'\n"
+        <<"Token types: ";
+
+    // Check if it's undefined
+    if(this->is_undefined())
     {
-        if(value)
-            msg<<"'"<<tokens::to_string(key)<<"' ";
+        msg<<"undefined\n";
+        return msg.str();
     }
-    msg<<"\n"
-        <<"Token column: '"<<this->column_<<"'\n";
+
+    for(auto const& [key,value] : *this->type_)
+        if(value)
+        {
+            msg<<"{'"<<tokens::to_string(key)<<"': ";
+
+            // Get data
+            t_data=this->data_.at(key);
+
+            // Down cast
+            if(!t_data)
+                throw std::runtime_error("Invalid token data");
+
+            // Add data
+            switch(key)
+            {
+                case tokens::t_integers:
+                    msg<<dynamic_cast<token_data_int*>(t_data)->get_data();
+                    break;
+
+                case tokens::t_floats:
+                    msg<<dynamic_cast<token_data_float*>(t_data)->get_data();
+                    break;
+
+                case tokens::t_identifiers:
+                case tokens::t_operators:
+                case tokens::t_reserved_words:
+                    msg<<dynamic_cast<token_data_string*>(t_data)->get_data();
+                    break;
+
+                default:
+                    msg<<"undefined";
+            }
+
+            msg<<"} ";
+        }
+    msg <<"\n";
 
     return msg.str();
 }
@@ -74,4 +158,39 @@ string token::to_string()
     msg<<this->info_->to_string();
 
     return msg.str();
+}
+
+// Check the token type
+bool token::is_type(tokens::t_type type)
+{
+    return this->info_->get_type()->at(type);
+}
+
+// Check if the token is a reserved word
+bool token::is_reserved_word()
+{
+    return this->is_type(tokens::t_reserved_words);
+}
+
+// Check if the token is an assignment
+bool token::is_assignment()
+{
+    auto* t_data= this->get_info()->get_operator_data();
+
+    if(!t_data)
+        return false;
+
+    return t_data->get_data()=="=";
+}
+
+// Check if the token is a numeric
+bool token::is_numeric()
+{
+    return this->is_type(tokens::t_integers)||this->is_type(tokens::t_floats);
+}
+
+// Check if the token is an operator
+bool token::is_operator()
+{
+    return this->is_type(tokens::t_operators);
 }

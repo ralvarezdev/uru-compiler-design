@@ -5,11 +5,13 @@
 #include<deque>
 
 #include "../../exceptions/expression_exception.hpp"
+#include "lib/interpreter/syntax_tree_interpreter.hpp"
 #include "lib/tokens/tokens.hpp"
 #include "lib/tree/parse_tree_node.hpp"
 #include "lib/tree/syntax_tree_node.hpp"
 #include "lib/lexical-analyzer/lexical_analyzer.hpp"
 #include "lib/syntax-analyzer/syntax_analyzer.hpp"
+#include "lib/interpreter/syntax_tree_interpreter.hpp"
 
 using std::deque;
 using std::getline;
@@ -21,7 +23,10 @@ namespace fs = std::filesystem;
 // Constants
 const bool DEBUG_TOKENS=false;
 const bool DEBUG_LEXICAL_ANALYZER = false;
-const bool DEBUG_SYNTAX_ANALYZER = true;
+const bool DEBUG_SYNTAX_ANALYZER = false;
+const bool DEBUG_SYNTAX_TREE = true;
+const bool DEBUG_INTERPRETER = true;
+const bool DEBUG_SYMBOLS_TABLE=true;
 const string ROOT_PATH = "interpreter";
 const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
 
@@ -43,6 +48,7 @@ int main()
     // Initalize analyzers
     auto lexical = lexical_analyzer(DEBUG_LEXICAL_ANALYZER);
     auto syntax = syntax_analyzer(DEBUG_SYNTAX_ANALYZER);
+    auto interpreter = syntax_tree_interpreter(&lexical, DEBUG_INTERPRETER);
 
     // Open the file to interpret
     auto file_to_interpret_stream = ifstream(FILE_TO_INTERPRET);
@@ -86,7 +92,11 @@ int main()
             // Get syntax tree root node
             syntax_root=syntax_tree_node::get_syntax_tree_node(parse_root);
 
-            cout<<syntax_root->to_string();
+            if(DEBUG_SYNTAX_TREE)
+                cout<<syntax_root->to_string();
+
+            // Interpret
+            //interpreter.interpret(line_number,syntax_root);
 
             // Free memory
             delete parse_root;
@@ -94,11 +104,8 @@ int main()
 
             for(auto t: *tokens)
             {
-                // If it's not a identifier or it's a reserved word, delete the token info
-                if(!t->get_info()->get_type()->at(tokens::t_identifiers))
-                    delete t->get_info();
-
-                if(t->get_key()==reserved_words::root||t->get_key()==reserved_words::print)
+                // If it's a identifier but not a reserved word, don't delete the token info
+                if(!t->get_info()->get_type()->at(tokens::t_identifiers)||t->get_info()->get_type()->at(tokens::t_reserved_words))
                     delete t->get_info();
 
                 delete t;
@@ -123,6 +130,11 @@ int main()
         cout << e.what() << "\n";
         return 1;
     }
+
+    // Check symbols table
+    if(DEBUG_SYMBOLS_TABLE)
+        cout<<lexical.to_string();
+
     return 0;
 }
 

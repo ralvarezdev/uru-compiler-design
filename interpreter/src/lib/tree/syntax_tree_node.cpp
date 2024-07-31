@@ -55,8 +55,7 @@ syntax_tree_node* syntax_tree_node::get_syntax_tree_node(parse_tree_node* parse_
     first_token = child_data->front();
 
     // If first child is a reserved word
-    if(first_token->get_info()->get_type()->at(tokens::t_identifiers))
-        if(first_token->get_key() == reserved_words::print || first_token->get_key() == reserved_words::root)
+    if(first_token->get_info()->get_type()->at(tokens::t_reserved_words))
         {
             // Add reserved word token
             new_data->push_back(first_token);
@@ -133,4 +132,31 @@ string syntax_tree_node::to_string(int level)
 string syntax_tree_node::to_string()
 {
     return this->to_string(0);
+}
+
+// Check if the syntax tree node is all numeric
+bool syntax_tree_node::is_numeric()
+{
+    // Check first child
+    if(this->get_first_child())
+    {
+        if(!this->get_first_child()->is_numeric())
+            return false;
+    }
+    else
+        for(auto const& t : *this->data)
+        {
+            if(t->is_operator())
+                continue;
+
+            if(!t->is_numeric())
+                return false;
+        }
+
+    // Check sibling
+    if(this->get_next_sibling())
+        if(!this->get_next_sibling()->is_numeric())
+            return false;
+
+    return true;
 }

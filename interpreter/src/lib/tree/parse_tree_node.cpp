@@ -19,7 +19,7 @@ parse_tree_node::parse_tree_node(deque<token*>* data, parse_tree_node* first_chi
 }
 
 // To string
-string parse_tree_node::to_string(int level)
+string parse_tree_node::to_string(const int level)
 {
     const auto tab = string(level, '\t');
 

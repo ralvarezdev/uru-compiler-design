@@ -64,4 +64,5 @@ public:
 
     static syntax_tree_node* get_syntax_tree_node(parse_tree_node*);
     string to_string();
+    bool is_numeric();
 };

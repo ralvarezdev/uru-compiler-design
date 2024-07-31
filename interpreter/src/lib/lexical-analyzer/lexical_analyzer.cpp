@@ -2,18 +2,21 @@
 
 #include <format>
 #include<cstring>
+#include<sstream>
 
 #include "../tokens/tokens.hpp"
 #include"../../../../exceptions/expression_exception.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/validators.hpp"
+#include "../../../../dfa-regex-validator/src/lib/validators/reserved_words/reserved_words.hpp"
+#include"../../../../dfa-regex-validator/src/lib/validators/operators/operators.hpp"
+#include"../../../../dfa-regex-validator/src/lib/validators/identifiers/identifiers.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/digits/digits.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/integers/integers.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/floats/floats.hpp"
-#include"../../../../dfa-regex-validator/src/lib/validators/identifiers/identifiers.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/letters/letters.hpp"
-#include"../../../../dfa-regex-validator/src/lib/validators/operators/operators.hpp"
 #include"../../../../dfa-regex-validator/src/lib/validators/words/words.hpp"
 
+using std::stringstream;
 using std::format;
 using std::cerr;
 using std::isspace;
@@ -35,13 +38,14 @@ lexical_analyzer::lexical_analyzer(const bool debug)
     this->debug_=debug;
 
     // Add validators_
-    this->validators_[tokens::t_digits]=new digits();
-    this->validators_[tokens::t_floats]=new floats();
-    this->validators_[tokens::t_identifiers]=new identifiers();
-    this->validators_[tokens::t_integers]=new integers();
-    this->validators_[tokens::t_letters]=new letters();
+    this->validators_[tokens::t_reserved_words]=new reserved_words();
     this->validators_[tokens::t_operators]=new operators();
-    this->validators_[tokens::t_words]=new words();
+    this->validators_[tokens::t_identifiers]=new identifiers();
+    // this->validators_[tokens::t_digits]=new digits();
+    this->validators_[tokens::t_floats]=new floats();
+    this->validators_[tokens::t_integers]=new integers();
+    // this->validators_[tokens::t_letters]=new letters();
+    // this->validators_[tokens::t_words]=new words();
 }
 
 // Add token to symbols table
@@ -53,6 +57,10 @@ void lexical_analyzer::add_token(const string& key, token_info* info)
 // Get token from symbols table
 token_info* lexical_analyzer::get_token(const string& key)
 {
+    // Check if the key is being stored
+    if(!this->symbols_table_.contains(key))
+        return nullptr;
+
     return this->symbols_table_.at(key);
 }
 
@@ -68,11 +76,17 @@ void lexical_analyzer::remove_token(const string& key)
     this->symbols_table_.erase(key);
 }
 
-// Print tokens
-void lexical_analyzer::print_tokens()
+// To string
+string lexical_analyzer::to_string()
 {
+    stringstream msg;
+
+    msg<<"Symbols table:\n";
     for (auto const& x : this->symbols_table_)
-        cout << x.first << " : " << this->symbols_table_.at(x.first)->to_string() << "\n";
+        msg << "Token name: "<<x.first << "\n"
+            << this->symbols_table_.at(x.first)->to_string();
+
+    return msg.str();
 }
 
 // Read line
@@ -159,18 +173,26 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                         t_key, token_start+1, line_number));
 
                 // Add token info
-                t_info = new token_info(token_types, token_start);
+                t_info = new token_info(token_types, token_start,t_key);
 
                 if(this->debug_)
                     cout<<t_info->to_string()<<"\n\n";
 
-                // If it's an identifier but not a reserved word, store it
-                if(token_types->at(tokens::t_identifiers))
-                    if(t_key!=reserved_words::print&&t_key!=reserved_words::root)
-                        this->add_token(t_key, t_info);
-
                 // Add token
                 tokens->emplace_back(new token(t_key, t_info));
+
+                // Check if it's an identifier but not a reserved word
+                if(token_types->at(tokens::t_identifiers)&&!token_types->at(tokens::t_reserved_words))
+                {
+                    // Check if it's being stored at symbols table
+                    if(!this->get_token(t_key))
+                    {
+                        // Add undefined identifier
+                        t_info=new token_info(token_start, t_key);
+
+                        this->add_token(t_key, t_info);
+                    }
+                }
             }
 
             // If it has an operator, add its token
@@ -180,7 +202,7 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                 token_types = this->validate_token(t_key);
 
                 // Add token info
-                t_info = new token_info(token_types, i);
+                t_info = new token_info(token_types, i, t_key);
 
                 if(this->debug_)
                     cout<<t_info->to_string()<<"\n\n";

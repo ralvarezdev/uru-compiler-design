@@ -11,6 +11,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/tokens)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/tree)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/lexical-analyzer)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/syntax-analyzer)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/src/lib/interpreter)
 
 add_library(exceptions SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/../exceptions/expression_exception.hpp
@@ -21,6 +22,7 @@ add_library(validators SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/validators.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/validators.cpp
 )
+
 
 add_library(digits SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/digits/digits.hpp
@@ -50,6 +52,11 @@ add_library(letters SHARED
 add_library(words SHARED
         ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/words/words.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/words/words.cpp
+)
+
+add_library(reserved_words SHARED
+        ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/reserved_words/reserved_words.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../dfa-regex-validator/src/lib/validators/reserved_words/reserved_words.cpp
 )
 
 add_library(identifiers SHARED
@@ -86,6 +93,10 @@ target_link_libraries(words
         PRIVATE letters
 )
 
+target_link_libraries(reserved_words
+        PRIVATE validators
+)
+
 target_link_libraries(identifiers
         PRIVATE validators
         PRIVATE letters
@@ -94,13 +105,14 @@ target_link_libraries(identifiers
 
 target_link_libraries(lexical_analyzer
         PRIVATE exceptions
+        PRIVATE reserved_words
+        PRIVATE identifiers
+        PRIVATE operators
         PRIVATE digits
         PRIVATE integers
         PRIVATE floats
         PRIVATE letters
         PRIVATE words
-        PRIVATE operators
-        PRIVATE identifiers
         PRIVATE tokens
 )
 
@@ -109,6 +121,20 @@ target_link_libraries(tree
 )
 
 target_link_libraries(syntax_analyzer
+        PRIVATE exceptions
+        PRIVATE reserved_words
+        PRIVATE identifiers
+        PRIVATE operators
+        PRIVATE digits
+        PRIVATE integers
+        PRIVATE floats
+        PRIVATE letters
+        PRIVATE words
+        PRIVATE tokens
+        PRIVATE tree
+)
+
+target_link_libraries(interpreter
         PRIVATE exceptions
         PRIVATE digits
         PRIVATE integers
@@ -129,10 +155,12 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE floats
         PRIVATE letters
         PRIVATE words
+        PRIVATE reserved_words
         PRIVATE operators
         PRIVATE identifiers
         PRIVATE tokens
         PRIVATE tree
         PRIVATE lexical_analyzer
         PRIVATE syntax_analyzer
+        PRIVATE interpreter
 )

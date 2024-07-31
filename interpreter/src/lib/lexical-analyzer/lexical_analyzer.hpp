@@ -43,6 +43,6 @@ public:
 
     token_info* get_token(const string&);
     void update_token(const string&, token_info*);
-    void print_tokens();
+    string to_string();
     deque<token*>* read_line(const string&, int);
 };
