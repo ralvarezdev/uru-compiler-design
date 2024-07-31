@@ -65,12 +65,17 @@ class token_info final
 {
     map<tokens::t_type, token_data*> data_{};
     map<tokens::t_type, bool>* type_{};
-    int column_{};
-    bool is_undefined_;
+    int column_=-1;
+    bool is_undefined_=false;
+
+    static map<tokens::t_type, bool>* generate_type(tokens::t_type);
+    void cast_key(string&);
 
 public:
     explicit token_info(map<tokens::t_type, bool>* ,  int, string&);
     explicit token_info(const int column, string& key): token_info(nullptr, column, key){};
+    explicit token_info(tokens::t_type, int);
+    explicit token_info(tokens::t_type, float);
     token_info()=default;
 
     ~token_info()

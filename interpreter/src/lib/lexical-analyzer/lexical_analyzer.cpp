@@ -243,6 +243,8 @@ map<tokens::t_type, bool>* lexical_analyzer::validate_token(const string& token)
             cout<<type<<"";
 
         (*validator_result)[type]= this->validators_[type]->validate(&token, false);
+
+        // Check
     }
 
     if(this->debug_)

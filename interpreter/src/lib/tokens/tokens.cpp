@@ -52,6 +52,49 @@ token_info::token_info(map<tokens::t_type, bool>* type,const int column, string&
     this->type_ = type;
     this->data_=map<tokens::t_type, token_data*>();
 
+    // Cast key
+    this->cast_key(key);
+}
+
+// Temporary token info constructor
+token_info::token_info(const tokens::t_type t_type, const float number)
+{
+    this->type_=generate_type(t_type);
+    this->data_=map<tokens::t_type, token_data*>();
+
+    for(int i=0; i<tokens::t_end; i++)
+    {
+        const auto type=static_cast<tokens::t_type>(i);
+        this->data_[type]=(type==t_type)?new token_data_float(number):nullptr;
+    }
+}
+
+token_info::token_info(const tokens::t_type t_type,const  int number)
+{
+    this->type_=generate_type(t_type);
+    this->data_=map<tokens::t_type, token_data*>();
+
+    for(int i=0; i<tokens::t_end; i++)
+    {
+        const auto type=static_cast<tokens::t_type>(i);
+        this->data_[type]=(type==t_type)?new token_data_int(number):nullptr;
+    }
+}
+
+// Generate type
+map<tokens::t_type, bool>* token_info::generate_type(const tokens::t_type t_type)
+{
+    const auto type = new map<tokens::t_type, bool>();
+
+    for(int i=0; i<tokens::t_end; i++)
+        (*type)[static_cast<tokens::t_type>(i)]= i==t_type;
+
+    return type;
+}
+
+// Cast token key string
+void token_info::cast_key(string& key)
+{
     // Store possible values
     for(int i=0; i<tokens::t_end; i++)
     {
@@ -59,7 +102,10 @@ token_info::token_info(map<tokens::t_type, bool>* type,const int column, string&
 
         // Check if type is valid
         if(!this->type_->at(t_type))
+        {
+            this->data_[t_type]=nullptr;
             continue;
+        }
 
         switch(t_type)
         {
@@ -78,7 +124,6 @@ token_info::token_info(map<tokens::t_type, bool>* type,const int column, string&
             break;
 
         default:
-            this->data_[t_type]=nullptr;
             break;
         }
     }
@@ -90,7 +135,7 @@ string token_info::to_string()
     stringstream msg;
     token_data* t_data;
 
-    msg<<"Token column: '"<<this->column_<<"'\n"
+    msg<<"Token column: '"<<this->get_column()<<"'\n"
         <<"Token types: ";
 
     // Check if it's undefined
