@@ -17,9 +17,15 @@ using std::deque;
 // - Parsed number clas
 
 // Constructor
-parsed_number::parsed_number(token* t)
+parsed_number::parsed_number(lexical_analyzer* lexical,token* t)
 {
-    this->t_info_=t->get_info();
+    this->lexical_analyzer_=lexical;
+
+    // Check if it's an identifier
+    if(!t->get_info()->is_type(tokens::t_identifiers))
+        this->t_info_=t->get_info();
+    else
+        this->t_info_=this->lexical_analyzer_->get_token_info(t->get_key());
 
     if(this->t_info_->is_type(tokens::t_integers))
     {
@@ -54,12 +60,18 @@ syntax_tree_interpreter::syntax_tree_interpreter(lexical_analyzer* lexical_analy
 // Interpret syntax tree
 void syntax_tree_interpreter::interpret(const int line_number,syntax_tree_node* root)
 {
+    deque<token*>* operators,*postfix_operators, *numeric_tokens;
     token* current_token, *result_token;
     token_info* result_info;
     syntax_tree_node* current_node=root;
 
     // Check if the root node contains a print statement
     current_token=current_node->get_data()->front();
+
+    // Initialize tokens containers
+    operators=new deque<token*>();
+    postfix_operators=new deque<token*>();
+    numeric_tokens=new deque<token*>();
 
     if(current_token->get_key()==r_words::print)
     {
@@ -75,7 +87,7 @@ void syntax_tree_interpreter::interpret(const int line_number,syntax_tree_node* 
         // Check if it's a numeric expression
         if(current_node->is_numeric())
         {
-            result_token=calculate_numeric(line_number, current_node->get_first_child());
+            result_token=calculate_numeric(line_number, current_node->get_first_child(), operators,postfix_operators, numeric_tokens);
 
             // Get result token info
             result_info=result_token->get_info();
@@ -111,7 +123,7 @@ void syntax_tree_interpreter::interpret(const int line_number,syntax_tree_node* 
     // Calculate numeric expression
     if(current_node->is_numeric())
     {
-        calculate_numeric(line_number, current_node->get_first_child());
+        calculate_numeric(line_number, current_node->get_first_child(), operators,postfix_operators, numeric_tokens);
         return;
     }
 
@@ -125,87 +137,156 @@ void syntax_tree_interpreter::interpret(const int line_number,syntax_tree_node* 
 }
 
 // Calculate numeric tokens
-token*  syntax_tree_interpreter::calculate_numeric(const int line_number,syntax_tree_node* root)
+token*  syntax_tree_interpreter::calculate_numeric(const int line_number,syntax_tree_node* root, deque<token*>* operators,deque<token*>* postfix_operators, deque<token*>* numeric_tokens)
 {
-    auto tokens = deque<token*>();
+    deque<token*> *new_tokens,*new_operators,*new_numeric_tokens,*new_postfix_operators;
     auto children = deque<syntax_tree_node*>();
-    token* current_token;
-    token_data* result_numeric;
-    syntax_tree_node* current_node=root,*main_node, *operator_node, *sibling_node;
-    int current_level=0;
+    token* t,*identifier, *main_operator=nullptr;
+    syntax_tree_node* current_node=root,*first_child,*operator_node, *sibling_node,*new_sibling_node;
 
-    // Get left children
+    // Get children
     while((current_node=current_node->get_first_child()))
         children.push_back(current_node);
 
-    // Get outer left node
-    current_node=children.back();
-
-    // Get operator
-    operator_node=children.back();
-
-    // Get sibling
-    sibling_node=current_node->get_next_sibling();
-
-    // Check if the root node contains an assignment statement
-    if(operator_node->get_data()->front()->is_assignment())
+    while(!children.empty())
     {
-        // Check data type
-        current_node=current_node->get_first_child();
+        // Get outer left node
+        current_node=children.back();
+        children.pop_back();
+        numeric_tokens->push_back(current_node->get_data()->front());
 
-        // Check if it's a numeric expression
-        if(current_node->is_numeric())
+        // Get operator
+        operator_node=children.back();
+        children.pop_back();
+        for(auto& t: *operator_node->get_data())
         {
-            result_numeric=calculate_numeric(line_number, current_node->get_first_child());
-            if(result_numeric)
-                cout<<result_numeric->get_value()<<"\n";
-            return;
+            if(!main_operator)
+            {
+                // Check if it's a parentheses
+                if(t->get_key()!="("&&t->get_key()!=")")
+                    main_operator=t;
+            }
+
+            // Check if it's an assignment operator
+            if(!t->is_assignment())
+                this->push_operator_to_postfix_stack(line_number, t, postfix_operators, operators);
         }
 
-        // Check expression
-        // NOTE: This is still in development. Based on the avalaible data types, the missing data type
-        // to be implemented is the string data type
-        throw expression_exception(format(
-            "NOT IMPLEMENTED: Let statement for the given expression at column {} in line {} is still in development"
-            ,current_token->get_info()->get_column(),line_number
-            ));
+        // Get sibling
+        sibling_node=current_node->get_next_sibling();
+
+        if((first_child=sibling_node->get_first_child()))
+        {
+            // Initialize tokens containers
+            new_numeric_tokens= new deque<token*>();
+            new_operators=new deque<token*>();
+            new_postfix_operators=new deque<token*>();
+
+            // Calculate result of the given
+            t=calculate_numeric(line_number, first_child, new_operators, new_postfix_operators, new_numeric_tokens);
+
+            // Add numeric token
+            numeric_tokens->push_back(t);
+            delete sibling_node;
+        }
     }
 
-    return result_numeric;
-}
+    // Empty operators
+    while(!operators->empty()){
+        postfix_operators->push_back(operators->back());
+        operators->pop_back();
+    }
 
-// Operate numeric data types
-token*  syntax_tree_interpreter::operate_numeric(const int line_number,deque<token*>* tokens)
-{
-    auto children = deque<syntax_tree_node*>();
-    token* current_token;
-    token_data* result_numeric;
+    // Free memory
+    delete operators;
 
-    return result_numeric;
+    // Check if the main operator is an assignment
+    if(main_operator->is_assignment())
+    {
+        // Get token to be assigned
+        identifier=numeric_tokens->front();
+        numeric_tokens->pop_front();
+
+        // Get result
+        t=operate_numeric_postfix(line_number, postfix_operators, numeric_tokens);
+
+        // Update identifier
+        this->lexical_analyzer_->update_token(identifier->get_key(), t->get_info());
+        return t;
+    }
+
+    // Check if the main operator is a reserved word
+    if(main_operator->is_reserved_word())
+    {
+        // Check if it's a print statement
+        if(main_operator->get_key()==r_words::print)
+            throw expression_exception(format(
+                "Runtime error: Print statement found inside another expression at column {} in line {}"
+                ,main_operator->get_info()->get_column(),line_number
+                ));
+
+        // Check if it's a root statement
+        if(main_operator->get_key()==r_words::root)
+        {
+            // Get result
+            t=operate_numeric_postfix(line_number, postfix_operators, numeric_tokens);
+
+            // Check if it's an integer
+            if(t->get_info()->is_type(tokens::t_integers))
+            {
+                int data = static_cast<int>(sqrt(t->get_info()->get_int_data()->get_data()));
+
+                // Free memory
+                delete t;
+
+                return new token("", new token_info(tokens::t_integers, data));
+            }
+
+            // Check if it's a float
+            if(t->get_info()->is_type(tokens::t_floats))
+            {
+                float data = sqrt(t->get_info()->get_float_data()->get_data());
+
+                // Free memory
+                delete t;
+
+                return new token("", new token_info(tokens::t_floats,data));
+            }
+
+            // Invalid data type
+            throw expression_exception(format(
+                "Runtime error: Result data type is not numeric for the given expression at column {} in line {}"
+                ,main_operator->get_info()->get_column(),line_number
+                ));
+        }
+    }
+
+        // Get result
+        return operate_numeric_postfix(line_number, postfix_operators, numeric_tokens);
 }
 
 // Check if the operator has higher priority
 bool syntax_tree_interpreter::has_higher_priority(const int line_number, token* op1, token* op2)
 {
     // Check if the operator is defined
-    for(auto& op:new token*[]{op1,op2})
+    for(auto op:deque{op1,op2})
         if(!this->operators_precedence_.contains(op->get_key()))
             throw expression_exception(
                 format("Runtime error: Invalid operator '{}' found at column {} in line {}",
-                op, op->get_info()->get_column(), line_number));
+                op->get_key(), op->get_info()->get_column(), line_number));
 
     return this->operators_precedence_[op1->get_key()] > this->operators_precedence_[op2->get_key()];
 }
 
 // Get operator stack
-void syntax_tree_interpreter::push_operator_to_postfix_stack(const int line_number,token*t_op,deque<token*>* postfix, deque<token*>* temp)
+void syntax_tree_interpreter::push_operator_to_postfix_stack(const int line_number,token*t_op,deque<token*>* postfix_operators, deque<token*>* temp)
 {
     // Check top operator
     if(t_op->get_key()==")")
     {
         while(!temp->empty()&&temp->back()->get_key()!="(")
         {
-            postfix->push_back(temp->back());
+            postfix_operators->push_back(temp->back());
             temp->pop_back();
         }
 
@@ -226,7 +307,7 @@ void syntax_tree_interpreter::push_operator_to_postfix_stack(const int line_numb
 
     while(!temp->empty()&&!this->has_higher_priority(line_number, t_op, temp->back())&&temp->back()->get_key()!="(")
     {
-        postfix->push_back(temp->back());
+        postfix_operators->push_back(temp->back());
         temp->pop_back();
     }
 
@@ -234,7 +315,7 @@ void syntax_tree_interpreter::push_operator_to_postfix_stack(const int line_numb
 }
 
 // Operate numeric postfix stack
-token* syntax_tree_interpreter::operate_numeric_postfix(const int line_number,deque<token*>* postfix, deque<token*>*numeric_tokens)
+token* syntax_tree_interpreter::operate_numeric_postfix(const int line_number,deque<token*>* postfix_operators, deque<token*>*numeric_tokens)
 {
     auto temp_tokens = deque<token*>();
     token* t1, *t2, *t_op, *result;
@@ -243,18 +324,18 @@ token* syntax_tree_interpreter::operate_numeric_postfix(const int line_number,de
     float float_result;
 
     // Check if the postfix stack is empty
-    if(postfix->empty())
+    if(postfix_operators->empty())
         throw expression_exception(
             format("Runtime error: Empty postfix stack at line {}", line_number));
 
     // Check if there's only one element
-    if(postfix->size()==1)
-        return postfix->front();
+    if(postfix_operators->size()==1)
+        return postfix_operators->front();
 
-    while(!postfix->empty())
+    while(!postfix_operators->empty())
     {
-        t_op=postfix->front();
-        postfix->pop_front();
+        t_op=postfix_operators->front();
+        postfix_operators->pop_front();
 
         if(numeric_tokens->size()<2)
             throw expression_exception(
@@ -268,8 +349,8 @@ token* syntax_tree_interpreter::operate_numeric_postfix(const int line_number,de
         numeric_tokens->pop_back();
 
         // Get parsed numbers
-        p2= parsed_number(t2);
-        p1= parsed_number(t1);
+        p2= parsed_number(this->lexical_analyzer_,t2);
+        p1= parsed_number(this->lexical_analyzer_,t1);
 
         if(t1->is_type(tokens::t_floats)||t2->is_type(tokens::t_floats))
         {
@@ -298,6 +379,10 @@ token* syntax_tree_interpreter::operate_numeric_postfix(const int line_number,de
     for(auto& t:temp_tokens)
         if(t!=result)
         delete t;
+
+    // Free memory
+    delete numeric_tokens;
+    delete postfix_operators;
 
     return result;
 }

@@ -54,8 +54,8 @@ void lexical_analyzer::add_token(const string& key, token_info* info)
     this->symbols_table_[key]= info;
 }
 
-// Get token from symbols table
-token_info* lexical_analyzer::get_token(const string& key)
+// Get token info from symbols table
+token_info* lexical_analyzer::get_token_info(const string& key)
 {
     // Check if the key is being stored
     if(!this->symbols_table_.contains(key))
@@ -185,7 +185,7 @@ deque<token*>* lexical_analyzer::read_line(const string& line, int line_number)
                 if(token_types->at(tokens::t_identifiers)&&!token_types->at(tokens::t_reserved_words))
                 {
                     // Check if it's being stored at symbols table
-                    if(!this->get_token(t_key))
+                    if(!this->get_token_info(t_key))
                     {
                         // Add undefined identifier
                         t_info=new token_info(token_start, t_key);
@@ -243,8 +243,6 @@ map<tokens::t_type, bool>* lexical_analyzer::validate_token(const string& token)
             cout<<type<<"";
 
         (*validator_result)[type]= this->validators_[type]->validate(&token, false);
-
-        // Check
     }
 
     if(this->debug_)

@@ -98,18 +98,13 @@ int main()
             // Interpret
             //interpreter.interpret(line_number,syntax_root);
 
+            // Check symbols table
+            if(DEBUG_SYMBOLS_TABLE)
+                cout<<lexical.to_string();
+
             // Free memory
             delete parse_root;
             delete syntax_root;
-
-            for(auto t: *tokens)
-            {
-                // If it's a identifier but not a reserved word, don't delete the token info
-                if(!t->get_info()->get_type()->at(tokens::t_identifiers)||t->get_info()->get_type()->at(tokens::t_reserved_words))
-                    delete t->get_info();
-
-                delete t;
-            }
         }
     }
     catch (expression_exception& e)
@@ -130,10 +125,6 @@ int main()
         cout << e.what() << "\n";
         return 1;
     }
-
-    // Check symbols table
-    if(DEBUG_SYMBOLS_TABLE)
-        cout<<lexical.to_string();
 
     return 0;
 }

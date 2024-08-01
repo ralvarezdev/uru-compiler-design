@@ -41,7 +41,7 @@ public:
             delete x.second;
     }
 
-    token_info* get_token(const string&);
+    token_info* get_token_info(const string&);
     void update_token(const string&, token_info*);
     string to_string();
     deque<token*>* read_line(const string&, int);
