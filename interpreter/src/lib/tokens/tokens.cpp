@@ -239,3 +239,9 @@ bool token::is_operator()
 {
     return this->is_type(tokens::t_operators);
 }
+
+// Check if the token is an identifier
+bool token::is_identifier()
+{
+    return this->is_type(tokens::t_identifiers);
+}

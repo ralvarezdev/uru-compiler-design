@@ -24,9 +24,9 @@ namespace fs = std::filesystem;
 const bool DEBUG_TOKENS=false;
 const bool DEBUG_LEXICAL_ANALYZER = false;
 const bool DEBUG_SYNTAX_ANALYZER = false;
-const bool DEBUG_SYNTAX_TREE = true;
-const bool DEBUG_INTERPRETER = true;
-const bool DEBUG_SYMBOLS_TABLE=true;
+const bool DEBUG_SYNTAX_TREE = false;
+const bool DEBUG_INTERPRETER = false;
+const bool DEBUG_SYMBOLS_TABLE=false;
 const string ROOT_PATH = "interpreter";
 const string FILE_TO_INTERPRET = "supercode.ralvarezdev";
 
@@ -96,7 +96,7 @@ int main()
                 cout<<syntax_root->to_string();
 
             // Interpret
-            //interpreter.interpret(line_number,syntax_root);
+            interpreter.interpret(line_number,syntax_root);
 
             // Check symbols table
             if(DEBUG_SYMBOLS_TABLE)

@@ -193,4 +193,5 @@ public:
     bool is_assignment();
     bool is_numeric();
     bool is_operator();
+    bool is_identifier();
 };

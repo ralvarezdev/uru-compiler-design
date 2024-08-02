@@ -7,15 +7,15 @@
 // Parsed number class
 class parsed_number
 {
-    lexical_analyzer* lexical_analyzer_;
-    token_info* t_info_;
+    lexical_analyzer* lexical_analyzer_=nullptr;
+    token_info* t_info_=nullptr;
     int integer_number_;
     float float_number_;
 
 public:
     explicit parsed_number(lexical_analyzer*, token*);
     explicit parsed_number(lexical_analyzer* lexical): parsed_number(lexical,nullptr) {};
-    parsed_number(): parsed_number(nullptr) {};
+    parsed_number()=default;
 
     // Getters
     int get_integer_number()
@@ -27,6 +27,11 @@ public:
     {
         return float_number_;
     }
+
+    bool is_type(tokens::t_type type)
+    {
+        return t_info_->is_type(type);
+    }
 };
 
 // Syntax tree interpreter class
@@ -35,13 +40,13 @@ class syntax_tree_interpreter {
     lexical_analyzer* lexical_analyzer_;
     bool debug_;
 
-    token* calculate_numeric(int,syntax_tree_node*, deque<token*>*, deque<token*>*,deque<token*>*);
+    token* calculate_numeric(int,syntax_tree_node*, deque<token*>*, deque<token*>*);
     bool has_higher_priority(int, token*, token*);
-    void push_operator_to_postfix_stack(int,token*,deque<token*>*, deque<token*>* );
+    void push_operator_to_postfix_stack(int,token*,deque<token*>*,deque<token*>* );
     float calculate_float_op(int,float , float, token*);
     int calculate_integer_op(int,int , int, token*);
     int calculate_integer_op(int,float , float, token*);
-    token* operate_numeric_postfix(int,deque<token*>*, deque<token*>*);
+    token* operate_numeric_postfix(int,deque<token*>*);
 
 public:
     explicit syntax_tree_interpreter(lexical_analyzer*, bool);

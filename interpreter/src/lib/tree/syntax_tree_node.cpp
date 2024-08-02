@@ -146,7 +146,8 @@ bool syntax_tree_node::is_numeric()
     else
         for(auto const& t : *this->data)
         {
-            if(t->is_operator())
+            // Check if it's a reserved word, operator or identifier
+            if(t->is_operator()||t->is_reserved_word()||t->is_identifier())
                 continue;
 
             if(!t->is_numeric())
